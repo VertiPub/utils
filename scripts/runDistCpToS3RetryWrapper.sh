@@ -7,12 +7,14 @@
 # soam@verticloud.com
 # VertiCloud Inc.
 
+# list of bad return codes: -1, -2, -3
+BAD_RETURNS=( 253 254 255 )
+
 # make sure we have 3 input arguments
 EXPECTED_ARGS=3
 E_BADARGS=65
 
-if [ $# -ne $EXPECTED_ARGS ]
-then
+if [ $# -ne $EXPECTED_ARGS ]; then
   echo "Usage: `basename $0` <HDFS src dir> <S3 dest bucket> <S3 dest dir>"
   echo ""
   echo "Copies a local HDFS directory/file to S3 in a more fault tolerant,"
@@ -25,7 +27,6 @@ then
   echo "`basename $0` /local/hdfs/path/to/dir mybucket /foo"
   exit $E_BADARGS
 fi
-
 
 NUM_RETRIES=8
 
@@ -45,6 +46,12 @@ S3_DEST_DIR=$3
 # assumes the AWS access and secret keys are defined in the shell environment
 MY_AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
 MY_AWS_SECRET_KEY=${AWS_SECRET_KEY}
+
+if [ -z "$MY_AWS_ACCESS_KEY" ] || [ -z "$MY_AWS_SECRET_KEY" ]; then
+    echo "Missing AWS Keys! Either edit script to include or set environment variables AWS_ACCESS_KEY and AWS_SECRET_KEY";
+    exit $E_BADARGS    
+fi
+
 S3_URI=s3n://$MY_AWS_ACCESS_KEY:$MY_AWS_SECRET_KEY@$S3_DEST_BUCKET$S3_DEST_DIR
 
 HADOOP=hadoop
@@ -69,26 +76,15 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
 
     # check exit codes
     if [ $RETVAL -eq 0 ]; then
-	echo "Completed"
 	exit
     fi
-    # -1
-    if [ $RETVAL -eq 255 ]; then
-        echo "Quiting. Can't retry."
-        exit
-    fi
-    
-    # -2
-    if [ $RETVAL -eq 254 ]; then
-        echo "Quitting. Can't retry."
-        exit
-    fi
 
-    # -3
-    if [ $RETVAL -eq 253 ]; then
-        echo "Quitting. Can't retry."
-        exit
-    fi
+    for val in "${BAD_RETURNS[@]}"; do
+	if [ $RETVAL -eq $val ]; then
+	    echo "Cannot retry.  Quitting."
+	    exit                                                                        
+	fi  
+    done
 
     echo "Retrying ..."
     sleep 2
