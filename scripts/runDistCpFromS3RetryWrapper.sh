@@ -4,8 +4,8 @@
 # case of certain exit codes. This is intended to copy from hdfs to
 # S3.
 
-# soam@verticloud.com
-# VertiCloud Inc.
+# soam@altiscale.com
+# Altiscale Inc.
 
 # list of bad return codes: -1, -2, -3
 BAD_RETURNS=( 253 254 255 )
@@ -32,9 +32,9 @@ fi
 NUM_RETRIES=8
 
 # assume we're going to be pulling from S3 to VertiCloud cluster
-# so can have many mappers. Default is 20 in distcp, so upping to
-# 30
-MAX_PARALLEL_COPIES=30
+# so can have many mappers. Default is 20 in distcp, but
+# starting with 10
+MAX_PARALLEL_COPIES=10
 
 # input directory name. No trailing slash eg. /a/b
 HDFS_DEST_DIR=$3
@@ -45,17 +45,21 @@ S3_SRC_BUCKET=$1
 # location where the data will be placed in S3. eg. /a/b
 S3_SRC_DIR=$2
 
-
 # assumes the AWS access and secret keys are defined in the shell environment
+# Edit if you wish to embed them here instead
 MY_AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
 MY_AWS_SECRET_KEY=${AWS_SECRET_KEY}
 
-if [ -z "$MY_AWS_ACCESS_KEY" ] || [ -z "$MY_AWS_SECRET_KEY" ]; then
-    echo "Missing AWS Keys! Either edit script to include or set environment variables AWS_ACCESS_KEY and AWS_SECRET_KEY";
-    exit $E_BADARGS    
-fi
-
 S3_URI=s3n://$MY_AWS_ACCESS_KEY:$MY_AWS_SECRET_KEY@$S3_SRC_BUCKET$S3_SRC_DIR
+
+if [ -z "$MY_AWS_ACCESS_KEY" ] || [ -z "$MY_AWS_SECRET_KEY" ]; then
+    echo "`basename $0`: Missing AWS keys! Either edit script to include or set environment variables AWS_ACCESS_KEY and AWS_SECRET_KEY"
+    echo "`basename $0`: Proceeding with the assumption that the AWS keys are added in a hadoop conf file such as core-site.xml"
+    # exit $E_BADARGS    
+    S3_URI=s3n://$S3_SRC_BUCKET$S3_SRC_DIR
+fi
+echo ""
+
 
 HADOOP=hadoop
 TASK_TIMEOUT=1800000
