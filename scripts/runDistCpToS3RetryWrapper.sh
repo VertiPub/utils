@@ -4,8 +4,8 @@
 # case of certain exit codes. This is intended to copy from hdfs to
 # S3.
 
-# soam@verticloud.com
-# VertiCloud Inc.
+# soam@altiscale.com
+# Altiscale Inc.
 
 # list of bad return codes: -1, -2, -3
 BAD_RETURNS=( 253 254 255 )
@@ -44,15 +44,20 @@ S3_DEST_DIR=$3
 
 
 # assumes the AWS access and secret keys are defined in the shell environment
+# Edit if you wish to embed them here instead
 MY_AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
 MY_AWS_SECRET_KEY=${AWS_SECRET_KEY}
 
+S3_URI=s3n://$MY_AWS_ACCESS_KEY:$MY_AWS_SECRET_KEY@$S3_DEST_BUCKET$S3_DEST_DIR
+
 if [ -z "$MY_AWS_ACCESS_KEY" ] || [ -z "$MY_AWS_SECRET_KEY" ]; then
-    echo "Missing AWS Keys! Either edit script to include or set environment variables AWS_ACCESS_KEY and AWS_SECRET_KEY";
-    exit $E_BADARGS    
+    echo "`basename $0`: Missing AWS keys! Either edit script to include or set environment variables AWS_ACCESS_KEY and AWS_SECRET_KEY"
+    echo "`basename $0`: Proceeding with the assumption that the AWS keys are added in a hadoop conf file such as core-site.xml"
+    S3_URI=s3n://$S3_DEST_BUCKET$S3_DEST_DIR
+    # exit $E_BADARGS    
 fi
 
-S3_URI=s3n://$MY_AWS_ACCESS_KEY:$MY_AWS_SECRET_KEY@$S3_DEST_BUCKET$S3_DEST_DIR
+
 
 HADOOP=hadoop
 TASK_TIMEOUT=1800000
