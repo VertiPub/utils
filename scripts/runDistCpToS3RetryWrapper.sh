@@ -96,3 +96,10 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
 
   let COUNTER=COUNTER+1
 done
+
+if [ $COUNTER -eq $NUM_RETRIES ] ; then
+  exit $RETVAL
+else
+  exit 0
+fi
+
