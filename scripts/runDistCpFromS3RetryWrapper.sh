@@ -84,16 +84,18 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
   # check exit codes
   if [ $RETVAL -eq 0 ]; then
     exit 0
+  else
+    echo "warn - detected non-zero status code $RETVAL from distcp"
   fi
 
   for val in "${BAD_RETURNS[@]}"; do
-  if [ $RETVAL -eq $val ]; then
-    >&2 echo "Cannot retry.  Quitting. Exiting with status code $RETVAL"
-    exit $RETVAL
-  fi  
+    if [ $RETVAL -eq $val ]; then
+      >&2 echo "Cannot retry.  Quitting. Exiting with status code $RETVAL"
+      exit $RETVAL
+    fi  
   done
 
-  echo "Retrying ..."
+  echo "warn - Retrying ..."
   sleep 2
 
   let COUNTER=COUNTER+1

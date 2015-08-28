@@ -82,6 +82,8 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
   # check exit codes
   if [ $RETVAL -eq 0 ]; then
   	exit 0
+  else
+    echo "warn - detected non-zero status code $RETVAL from distcp"
   fi
 
   for val in "${BAD_RETURNS[@]}"; do
