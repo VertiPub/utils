@@ -79,13 +79,13 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
   # through -3 are bad news but we can try repeating others. DistCp
   # actually returns -999 for other exceptions.
   RETVAL=$?
-  echo "Completed with exit code of $RETVAL"
+  echo "ok - Completed with exit code of $RETVAL"
 
   # check exit codes
   if [ $RETVAL -eq 0 ]; then
     exit 0
   else
-    echo "warn - detected non-zero status code $RETVAL from distcp"
+    echo "warn - Detected non-zero status code $RETVAL from distcp"
   fi
 
   for val in "${BAD_RETURNS[@]}"; do
