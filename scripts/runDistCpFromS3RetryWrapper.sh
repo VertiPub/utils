@@ -53,10 +53,10 @@ MY_AWS_SECRET_KEY=${AWS_SECRET_KEY}
 S3_URI=s3n://$MY_AWS_ACCESS_KEY:$MY_AWS_SECRET_KEY@$S3_SRC_BUCKET$S3_SRC_DIR
 
 if [ -z "$MY_AWS_ACCESS_KEY" ] || [ -z "$MY_AWS_SECRET_KEY" ]; then
-    echo "`basename $0`: Missing AWS keys! Either edit script to include or set environment variables AWS_ACCESS_KEY and AWS_SECRET_KEY"
-    echo "`basename $0`: Proceeding with the assumption that the AWS keys are added in a hadoop conf file such as core-site.xml"
-    # exit $E_BADARGS    
-    S3_URI=s3n://$S3_SRC_BUCKET$S3_SRC_DIR
+  echo "`basename $0`: Missing AWS keys! Either edit script to include or set environment variables AWS_ACCESS_KEY and AWS_SECRET_KEY"
+  echo "`basename $0`: Proceeding with the assumption that the AWS keys are added in a hadoop conf file such as core-site.xml"
+  # exit $E_BADARGS  
+  S3_URI=s3n://$S3_SRC_BUCKET$S3_SRC_DIR
 fi
 echo ""
 
@@ -71,30 +71,32 @@ DEFINES="-Dmapred.task.timeout=$TASK_TIMEOUT -Dmapreduce.map.maxattempts=$TASK_A
 COUNTER=0
 while [ $COUNTER -lt $NUM_RETRIES ]; do
 
-    # run the hadoop command
-    echo "$HADOOP distcp $DEFINES -i -update $S3_URI $HDFS_DEST_DIR"
-    $HADOOP distcp $DEFINES -i -update -m $MAX_PARALLEL_COPIES $S3_URI $HDFS_DEST_DIR 
+  # run the hadoop command
+  echo "$HADOOP distcp $DEFINES -i -update $S3_URI $HDFS_DEST_DIR"
+  $HADOOP distcp $DEFINES -i -update -m $MAX_PARALLEL_COPIES $S3_URI $HDFS_DEST_DIR 
 
-    # check the exit value. Looking at the DistCp source, exit code -1
-    # through -3 are bad news but we can try repeating others. DistCp
-    # actually returns -999 for other exceptions.
-    RETVAL=$?
-    echo "Completed with exit code of $RETVAL"
+  # check the exit value. Looking at the DistCp source, exit code -1
+  # through -3 are bad news but we can try repeating others. DistCp
+  # actually returns -999 for other exceptions.
+  RETVAL=$?
+  echo "Completed with exit code of $RETVAL"
 
-    # check exit codes
-    if [ $RETVAL -eq 0 ]; then
-        exit
-    fi
+  # check exit codes
+  if [ $RETVAL -eq 0 ]; then
+    exit 0
+  fi
 
-    for val in "${BAD_RETURNS[@]}"; do
+  for val in "${BAD_RETURNS[@]}"; do
 	if [ $RETVAL -eq $val ]; then
-	    echo "Cannot retry.  Quitting."
-	    exit                                                                        
+	  echo "Cannot retry.  Quitting."
+	  exit $RETVAL
 	fi  
-    done
+  done
 
-    echo "Retrying ..."
-    sleep 2
+  echo "Retrying ..."
+  sleep 2
 
-    let COUNTER=COUNTER+1
+  let COUNTER=COUNTER+1
 done
+
+
