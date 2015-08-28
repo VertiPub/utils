@@ -88,7 +88,7 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
 
   for val in "${BAD_RETURNS[@]}"; do
   if [ $RETVAL -eq $val ]; then
-    echo "Cannot retry.  Quitting."
+    >&2 echo "Cannot retry.  Quitting. Exiting with status code $RETVAL"
     exit $RETVAL
   fi  
   done
@@ -100,6 +100,7 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
 done
 
 if [ $COUNTER -eq $NUM_RETRIES ] ; then
+  >&2 echo "fail - $0 exhausted all retries and still fail, exiting with status code $RETVAL"
   exit $RETVAL
 else
   exit 0

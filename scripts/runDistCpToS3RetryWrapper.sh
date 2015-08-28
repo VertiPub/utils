@@ -77,7 +77,7 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
   # through -3 are bad news but we can try repeating others. DistCp
   # actually returns -999 for other exceptions.
   RETVAL=$?
-  echo "Completed with exit code of $RETVAL"
+  echo "ok - Completed with exit code of $RETVAL"
 
   # check exit codes
   if [ $RETVAL -eq 0 ]; then
@@ -86,18 +86,19 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
 
   for val in "${BAD_RETURNS[@]}"; do
 	if [ $RETVAL -eq $val ]; then
-	  echo "Cannot retry.  Quitting."
+	  >&2 echo "fail - Cannot retry.  Quitting. Exiting with status code $RETVAL"
 	  exit $RETVAL                            
 	fi  
   done
 
-  echo "Retrying ..."
+  echo "warn - Retrying ..."
   sleep 2
 
   let COUNTER=COUNTER+1
 done
 
 if [ $COUNTER -eq $NUM_RETRIES ] ; then
+  >&2 echo "fail - $0 exhausted all retries and still fail, exiting with status code $RETVAL"
   exit $RETVAL
 else
   exit 0
