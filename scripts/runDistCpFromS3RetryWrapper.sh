@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # puts a simple wrapper shell script around hadoop distcp to retry in
-# case of certain exit codes. This is intended to copy from hdfs to
-# S3.
+# case of certain exit codes. This is intended to copy from S3 to hdfs.
 
 # soam@altiscale.com
 # Altiscale Inc.
