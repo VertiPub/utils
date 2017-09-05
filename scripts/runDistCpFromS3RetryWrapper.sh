@@ -49,7 +49,7 @@ S3_SRC_DIR=$2
 MY_AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
 MY_AWS_SECRET_KEY=${AWS_SECRET_KEY}
 
-S3_URI=s3n://$MY_AWS_ACCESS_KEY:$MY_AWS_SECRET_KEY@$S3_SRC_BUCKET$S3_SRC_DIR
+S3_URI=s3n://$S3_SRC_BUCKET$S3_SRC_DIR
 
 if [ -z "$MY_AWS_ACCESS_KEY" ] || [ -z "$MY_AWS_SECRET_KEY" ]; then
   echo "`basename $0`: Missing AWS keys! Either edit script to include or set environment variables AWS_ACCESS_KEY and AWS_SECRET_KEY"
@@ -71,8 +71,8 @@ COUNTER=0
 while [ $COUNTER -lt $NUM_RETRIES ]; do
 
   # run the hadoop command
-  echo "$HADOOP distcp $DEFINES -i -update $S3_URI $HDFS_DEST_DIR"
-  $HADOOP distcp $DEFINES -i -update -m $MAX_PARALLEL_COPIES $S3_URI $HDFS_DEST_DIR 
+  #echo "$HADOOP distcp $DEFINES -i -update $S3_URI $HDFS_DEST_DIR"
+  $HADOOP distcp -Dfs.s3n.awsAccessKeyId=$MY_AWS_ACCESS_KEY -Dfs.s3n.awsSecretAccessKey=$MY_AWS_SECRET_KEY $DEFINES -i -update -m $MAX_PARALLEL_COPIES $S3_URI $HDFS_DEST_DIR
 
   # check the exit value. Looking at the DistCp source, exit code -1
   # through -3 are bad news but we can try repeating others. DistCp
@@ -91,7 +91,7 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
     if [ $RETVAL -eq $val ]; then
       >&2 echo "Cannot retry.  Quitting. Exiting with status code $RETVAL"
       exit $RETVAL
-    fi  
+    fi
   done
 
   echo "warn - Retrying ..."
@@ -106,5 +106,4 @@ if [ $COUNTER -eq $NUM_RETRIES ] ; then
 else
   exit 0
 fi
-
 
