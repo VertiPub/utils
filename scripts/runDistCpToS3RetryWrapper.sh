@@ -48,7 +48,7 @@ S3_DEST_DIR=$3
 MY_AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
 MY_AWS_SECRET_KEY=${AWS_SECRET_KEY}
 
-S3_URI=s3n://$MY_AWS_ACCESS_KEY:$MY_AWS_SECRET_KEY@$S3_DEST_BUCKET$S3_DEST_DIR
+S3_URI=s3n://$S3_DEST_BUCKET$S3_DEST_DIR
 
 if [ -z "$MY_AWS_ACCESS_KEY" ] || [ -z "$MY_AWS_SECRET_KEY" ]; then
   echo "`basename $0`: Missing AWS keys! Either edit script to include or set environment variables AWS_ACCESS_KEY and AWS_SECRET_KEY"
@@ -71,7 +71,7 @@ while [ $COUNTER -lt $NUM_RETRIES ]; do
 
   # run the hadoop command
   echo "$HADOOP distcp $DEFINES -i -update -m $MAX_PARALLEL_COPIES $HDFS_INPUT_DIR $S3_URI"
-  $HADOOP distcp $DEFINES -i -update -m $MAX_PARALLEL_COPIES $HDFS_INPUT_DIR $S3_URI
+  $HADOOP distcp -Dfs.s3n.awsAccessKeyId=$MY_AWS_ACCESS_KEY -Dfs.s3n.awsSecretAccessKey=$MY_AWS_SECRET_KEY $DEFINES -i -update -m $MAX_PARALLEL_COPIES $HDFS_INPUT_DIR $S3_URI
 
   # check the exit value. Looking at the DistCp source, exit code -1
   # through -3 are bad news but we can try repeating others. DistCp
